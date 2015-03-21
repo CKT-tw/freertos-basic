@@ -26,6 +26,7 @@ void mmtest_command(int, char **);
 void test_command(int, char **);
 void _command(int, char **);
 void new_command(int, char **);
+void tasklogger_command(int, char **);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
@@ -39,6 +40,7 @@ cmdlist cl[]={
 	MKCL(help, "help"),
 	MKCL(test, "test new function"),
 	MKCL(new, "add a new task"),
+	MKCL(tasklogger, "start a task to write task log file"),
 	MKCL(, ""),
 };
 
@@ -215,16 +217,60 @@ cmdfunc *do_command(const char *cmd){
 }
 void testcommand()
 {
-	fio_printf(1, "\rWelcome to FreeRTOS Shell\r\n");
 	while(1){
 		vTaskDelay(100000/100);
 	}
 	
 }
 void new_command(int n, char *argv[]){
-	fio_printf(1, "\r\nstart test 'new' function\r\n");
+	fio_printf(1, "\r\na 'tasktest' task created\r\n");
    	xTaskCreate(testcommand,
 	            (signed portCHAR *) "testtask",
 	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, NULL);
-	fio_printf(1, "end test 'new' function\r\n");
+	//fio_printf(1, "end test 'new' function\r\n");
+}
+void system_logger2(void *pvParameters)
+{
+    signed char buf[128];
+    char output[512] = {0};
+    char *tag = "\nName          State   Priority  Stack  Num\n*******************************************\n";
+    int handle, error;
+    const portTickType xDelay = 100000 / 100;
+
+    handle = host_action(SYS_OPEN, "output/syslog", 4);
+    if(handle == -1) {
+        fio_printf(1, "Open file error!\n");
+        return;
+    }
+
+    while(1) {
+        memcpy(output, tag, strlen(tag));
+        error = host_action(SYS_WRITE, handle, (void *)output, strlen(output));
+        if(error != 0) {
+            fio_printf(1, "Write file error! Remain %d bytes didn't write in the file.\n\r", error);
+            host_action(SYS_CLOSE, handle);
+            return;
+        }
+        vTaskList(buf);
+
+        memcpy(output, (char *)(buf + 2), strlen((char *)buf) - 2);
+
+        error = host_action(SYS_WRITE, handle, (void *)buf, strlen((char *)buf));
+        if(error != 0) {
+            fio_printf(1, "Write file error! Remain %d bytes didn't write in the file.\n\r", error);
+            host_action(SYS_CLOSE, handle);
+            return;
+        }
+
+        vTaskDelay(xDelay);
+    }
+    
+    host_action(SYS_CLOSE, handle);
+}
+void tasklogger_command(int n, char *argv[]){
+	fio_printf(1, "\r\n");
+   	xTaskCreate(system_logger2, 
+		    (signed portCHAR *) "logger",
+		    512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, NULL);
+	
 }
