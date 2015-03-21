@@ -118,7 +118,6 @@ void cat_command(int n, char *argv[]){
 		fio_printf(2, "\r\nFile system not registered.\r\n", argv[1]);
     }
 }
-
 void man_command(int n, char *argv[]){
 	if(n==1){
 		fio_printf(2, "\r\nUsage: man <command>\r\n");
@@ -182,8 +181,19 @@ void test_command(int n, char *argv[]) {
         host_action(SYS_CLOSE, handle);
         return;
     }
-
+    
     host_action(SYS_CLOSE, handle);
+    
+    int front=-1,near=1,temp;
+    int i=0;
+    while(i<20){
+	front=front+near;
+	fio_printf(1, "The %dth fibonacci number is %d.\n\r",i+1,front);
+	temp=front;
+	front=near;
+	near=temp;
+	i++;
+    }
 }
 
 void _command(int n, char *argv[]){
