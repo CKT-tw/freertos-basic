@@ -25,6 +25,7 @@ void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
 void _command(int, char **);
+void new_command(int, char **);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
@@ -37,6 +38,7 @@ cmdlist cl[]={
 	MKCL(mmtest, "heap memory allocation test"),
 	MKCL(help, "help"),
 	MKCL(test, "test new function"),
+	MKCL(new, "add a new task"),
 	MKCL(, ""),
 };
 
@@ -210,4 +212,18 @@ cmdfunc *do_command(const char *cmd){
 			return cl[i].fptr;
 	}
 	return NULL;	
+}
+void testcommand()
+{
+	fio_printf(1, "\rWelcome to FreeRTOS Shell\r\n");
+	while(1){
+	}
+	
+}
+void new_command(int n, char *argv[]){
+	fio_printf(1, "\r\nstart test 'new' function\r\n");
+   	xTaskCreate(testcommand,
+	            (signed portCHAR *) "testtask",
+	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, NULL);
+	fio_printf(1, "end test 'new' function\r\n");
 }
