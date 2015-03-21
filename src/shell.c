@@ -217,6 +217,7 @@ void testcommand()
 {
 	fio_printf(1, "\rWelcome to FreeRTOS Shell\r\n");
 	while(1){
+		vTaskDelay(100000/100);
 	}
 	
 }
